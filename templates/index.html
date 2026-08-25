@@ -454,16 +454,23 @@ function computeStatus(lastContact, threshold){
   return { days, color, text };
 }
 
-function autoRiskFloor(lastContact){
-  if(!lastContact) return 5;
-  const days = Math.max(0, Math.floor((Date.now() - new Date(lastContact+'T00:00:00').getTime()) / 86400000));
+function autoRiskFloor(lastContact, riesgoSetAt){
+  const daysSince = (d)=> d ? Math.max(0, Math.floor((Date.now() - new Date(d+'T00:00:00').getTime()) / 86400000)) : null;
+  const d1 = daysSince(lastContact);
+  const d2 = daysSince(riesgoSetAt);
+  let days;
+  if(d1 !== null && d2 !== null) days = Math.min(d1, d2);
+  else if(d1 !== null) days = d1;
+  else if(d2 !== null) days = d2;
+  else days = 0;
   return Math.min(5, 2 + Math.floor(days/7));
 }
 
 function applyAutoEscalation(){
   let changed = false;
   state.hotels.forEach(h=>{
-    const floor = autoRiskFloor(h.lastContact);
+    if(!h.riesgoSetAt){ h.riesgoSetAt = todayISO(); changed = true; }
+    const floor = autoRiskFloor(h.lastContact, h.riesgoSetAt);
     const current = h.riesgo || 2;
     if(floor > current){ h.riesgo = floor; changed = true; }
   });
@@ -541,6 +548,7 @@ function renderRow(hotel){
       if(e.target.checked){
         hotel.lastContact = todayISO();
         hotel.riesgo = 2;
+        hotel.riesgoSetAt = todayISO();
       } else {
         hotel.lastContact = null;
       }
@@ -570,7 +578,7 @@ function renderRow(hotel){
       class: 'risk-dot' + (currentRisk === n ? ' active' : ''),
       style: `background:${riskColor(n)}`,
       title: `Nivel ${n}`,
-      onClick: ()=>{ hotel.riesgo = n; scheduleSave(); render(); }
+      onClick: ()=>{ hotel.riesgo = n; hotel.riesgoSetAt = todayISO(); scheduleSave(); render(); }
     }, String(n)));
   }
 
@@ -681,7 +689,7 @@ document.getElementById('confirmAdd').addEventListener('click', ()=>{
   const dueño = document.getElementById('newOwner').value.trim();
   const date = document.getElementById('newDate').value || null;
   if(!hotel){ alert('Poné al menos el nombre del hotel.'); return; }
-  state.hotels.push({ id: uid(), hotel, dueño, lastContact: date, notes:'', riesgo:newHotelRisk });
+  state.hotels.push({ id: uid(), hotel, dueño, lastContact: date, notes:'', riesgo:newHotelRisk, riesgoSetAt: todayISO() });
   document.getElementById('newHotel').value = '';
   document.getElementById('newOwner').value = '';
   document.getElementById('newDate').value = '';
@@ -700,7 +708,7 @@ document.getElementById('confirmBulk').addEventListener('click', ()=>{
     const dueño = (parts[1] || '').trim();
     let riesgo = parseInt((parts[2] || '').trim(), 10);
     if(isNaN(riesgo) || riesgo < 2 || riesgo > 5) riesgo = 2;
-    if(hotel) state.hotels.push({ id: uid(), hotel, dueño, lastContact:null, notes:'', riesgo });
+    if(hotel) state.hotels.push({ id: uid(), hotel, dueño, lastContact:null, notes:'', riesgo, riesgoSetAt: todayISO() });
   });
   document.getElementById('bulkText').value = '';
   togglePanel('bulkPanel', false);
