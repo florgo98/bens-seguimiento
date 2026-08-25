@@ -1,0 +1,13 @@
+{
+  "threshold": 30,
+  "hotels": [
+    {
+      "id": "1",
+      "hotel": "Test Hotel",
+      "dueño": "Juan",
+      "lastContact": null,
+      "notes": "",
+      "riesgo": 2
+    }
+  ]
+}
