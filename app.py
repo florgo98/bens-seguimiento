@@ -1,8 +1,9 @@
 import json
 import os
+from functools import wraps
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 
 app = Flask(__name__)
 
@@ -12,6 +13,36 @@ app = Flask(__name__)
 # a los redeploys.
 DATA_FILE = Path(os.environ.get("DATA_FILE", "data.json"))
 DEFAULT_STATE = {"threshold": 30, "hotels": []}
+
+# Usuario/contraseña para proteger la app. Se configuran como variables
+# de entorno en Railway (APP_USER, APP_PASSWORD). Si APP_PASSWORD no está
+# seteada, no se pide nada (útil para correrlo local sin configurar nada).
+APP_USER = os.environ.get("APP_USER", "bens")
+APP_PASSWORD = os.environ.get("APP_PASSWORD")
+
+
+def check_auth(username, password):
+    if not APP_PASSWORD:
+        return True
+    return username == APP_USER and password == APP_PASSWORD
+
+
+def authenticate():
+    return Response(
+        "Acceso restringido.",
+        401,
+        {"WWW-Authenticate": 'Basic realm="Seguimiento BENS"'},
+    )
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 
 def load_state():
@@ -39,16 +70,19 @@ def save_state(state):
 
 
 @app.route("/")
+@requires_auth
 def index():
     return render_template("index.html")
 
 
 @app.route("/api/state", methods=["GET"])
+@requires_auth
 def get_state():
     return jsonify(load_state())
 
 
 @app.route("/api/state", methods=["POST"])
+@requires_auth
 def set_state():
     payload = request.get_json(force=True, silent=True)
     if not isinstance(payload, dict):
