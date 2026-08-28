@@ -35,9 +35,24 @@ def load_users():
         # un usuario demo con acceso a todas las secciones.
         return {"demo": {"password": "demo", "sections": list(SECTIONS.keys())}}
     try:
-        return json.loads(raw)
+        data = json.loads(raw)
     except json.JSONDecodeError:
         return {}
+    if not isinstance(data, dict):
+        return {}
+
+    clean = {}
+    for uname, info in data.items():
+        if not isinstance(info, dict):
+            continue
+        password = info.get("password")
+        sections = info.get("sections")
+        if not isinstance(password, str):
+            continue
+        if not isinstance(sections, list):
+            sections = []
+        clean[uname] = {"password": password, "sections": sections}
+    return clean
 
 
 USERS = load_users()
