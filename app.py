@@ -196,6 +196,19 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/debug/auth-status")
+def debug_auth_status():
+    # Ruta temporal de diagnóstico. No expone contraseñas — solo confirma
+    # si la variable de entorno llegó y qué usuarios se pudieron leer.
+    # Borrar esta ruta una vez resuelto el problema de login.
+    raw = os.environ.get("USERS_CONFIG")
+    return jsonify({
+        "users_config_env_set": raw is not None,
+        "users_config_env_length": len(raw) if raw else 0,
+        "parsed_usernames": list(USERS.keys()),
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
