@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import Flask, Response, abort, jsonify, render_template, request
 
 app = Flask(__name__)
+from briefing import bp as briefing_bp y en la línea siguiente app.register_blueprint(briefing_bp)
 
 # DATA_FILE se puede sobreescribir con una variable de entorno.
 # Si montás un Volume en Railway, apuntá DATA_FILE a un path dentro
