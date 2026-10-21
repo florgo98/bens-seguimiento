@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefing con Esteban</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F9FB; --ink:#1C2433; --muted:#5F6B7A; --line:#DDE2E9;
+    --accent:#1F5F8B; --done:#2F7D5B; --urgent:#B3402F; --soft:#EEF2F6;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  header.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  h1{font-size:1.5rem;margin:0;font-weight:700;letter-spacing:-.01em}
+  .back{font-size:.9rem;color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--ink)}
+
+  .tabs{display:flex;gap:4px;margin:22px 0 14px;border-bottom:1px solid var(--line)}
+  .tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;
+       padding:10px 14px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .fecha{font-weight:600}
+  .count{color:var(--muted);font-size:.9rem}
+  .strip{display:flex;gap:3px;margin:8px 0 6px}
+  .strip i{flex:1;height:8px;background:var(--line);border-radius:1px}
+  .strip i.on{background:var(--done)}
+  .strip i.prio{background:var(--urgent)}
+
+  .btn{font:inherit;font-size:.9rem;font-weight:600;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);
+       background:var(--accent);color:#fff;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--accent)}
+  .btn:hover{filter:brightness(.95)}
+
+  h2.grupo{font-size:.95rem;font-weight:700;margin:30px 0 4px;color:var(--ink)}
+  details.bloque{border-top:1px solid var(--line)}
+  details.bloque:last-of-type{border-bottom:1px solid var(--line)}
+  details.bloque > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+       gap:10px;padding:12px 2px;font-weight:600}
+  details.bloque > summary::-webkit-details-marker{display:none}
+  details.bloque > summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+       transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
+  details.bloque[open] > summary::before{transform:rotate(45deg)}
+  summary .tit{flex:1}
+  summary .n{font-weight:500;font-size:.85rem;color:var(--muted)}
+  summary .n.ok{color:var(--done)}
+  .hint{margin:0 0 8px 20px;color:var(--muted);font-size:.9rem}
+  .items{list-style:none;margin:0 0 10px 20px;padding:0}
+
+  .item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:start;padding:7px 0;border-top:1px dashed var(--line)}
+  .item:first-child{border-top:0}
+  .item input[type=checkbox]{width:20px;height:20px;margin:2px 0 0;accent-color:var(--done);cursor:pointer}
+  .item.ro input[type=checkbox]{cursor:default}
+  .txt{width:100%;border:0;background:transparent;font:inherit;color:inherit;padding:2px 4px;border-radius:4px;min-width:0}
+  .txt:hover:not([readonly]){background:var(--soft)}
+  .item.hecho .txt{color:var(--muted);text-decoration:line-through}
+  .tools{display:flex;gap:2px;align-items:center}
+  .ic{appearance:none;background:none;border:0;cursor:pointer;color:var(--muted);font:inherit;font-size:.95rem;
+      padding:2px 6px;border-radius:4px;line-height:1.2}
+  .ic:hover{background:var(--soft);color:var(--ink)}
+  .ic.on{color:var(--urgent);font-weight:700}
+  .sub{grid-column:2 / 4;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:var(--muted)}
+  .chip{padding:1px 8px;border-radius:10px;background:var(--soft);color:var(--ink)}
+  .chip.vencido{background:#F6DCD7;color:var(--urgent)}
+  .sub input[type=date]{font:inherit;font-size:.85rem;border:1px solid var(--line);border-radius:4px;padding:2px 4px;background:#fff}
+  .nota{grid-column:2 / 4;width:100%;font:inherit;font-size:.9rem;border:1px solid var(--line);border-radius:4px;padding:6px 8px;
+        background:#fff;resize:vertical;min-height:54px}
+  .nota-ro{grid-column:2 / 4;font-size:.9rem;color:var(--muted);white-space:pre-wrap}
+  .prio-tag{color:var(--urgent);font-weight:600;font-size:.8rem}
+
+  form.nuevo{display:flex;gap:8px;margin:2px 0 14px 20px}
+  form.nuevo input{flex:1;font:inherit;border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:#fff;min-width:0}
+  .vacio{margin:0 0 12px 20px;color:var(--muted);font-size:.9rem}
+
+  section.hist{margin-top:44px}
+  section.hist h2{font-size:1.1rem;margin:0 0 8px}
+  .h-row{border-top:1px solid var(--line);padding:8px 0}
+  .h-row summary{cursor:pointer;font-weight:500}
+  .h-row ul{margin:8px 0 0 18px;padding:0;color:var(--muted);font-size:.9rem}
+  .h-row h4{margin:10px 0 2px 0;color:var(--ink);font-size:.9rem}
+
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;
+         border-radius:6px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:520px){ .item{grid-template-columns:auto 1fr} .tools{grid-column:2} }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1>Briefing con Esteban</h1>
+    <a class="back" href="/">Volver al panel</a>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tipo="lunes">Lunes</button>
+    <button class="tab" role="tab" data-tipo="viernes">Viernes</button>
+  </div>
+
+  <div class="meta">
+    <div>
+      <div class="fecha" id="fecha"></div>
+      <div class="count" id="count"></div>
+    </div>
+    <button class="btn" id="cerrar" hidden>Cerrar briefing</button>
+  </div>
+  <div class="strip" id="strip" aria-hidden="true"></div>
+
+  <div id="bloques"></div>
+
+  <section class="hist">
+    <h2>Briefings anteriores</h2>
+    <div id="hist"></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let S = null;
+let tipo = localStorage.getItem('briefing-tipo') || ({1:'lunes',2:'viernes',3:'viernes',4:'viernes',5:'lunes',6:'lunes',0:'lunes'}[new Date().getDay()]);
+const abiertos = new Set(JSON.parse(sessionStorage.getItem('briefing-abiertos') || '[]'));
+let cerradosExplicitos = new Set(JSON.parse(sessionStorage.getItem('briefing-cerrados') || '[]'));
+
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+
+async function api(path, method='GET', body){
+  const r = await fetch('/briefing/api'+path, {method, headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined});
+  if(r.status===401||r.status===403){ toast('No tenés permiso o se cerró la sesión. Volvé a entrar.'); throw new Error('auth'); }
+  if(!r.ok){ toast('No se pudo guardar. Probá de nuevo.'); throw new Error(r.status); }
+  return r.json();
+}
+
+async function cargar(){ S = await api('/estado'); render(); }
+
+function fechaLarga(iso){
+  const d = new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+}
+function vencido(iso){ return iso && iso < new Date().toISOString().slice(0,10); }
+
+function render(){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tipo===tipo));
+  const b = S[tipo];
+  $('#fecha').textContent = S.titulos[tipo] + ' · ' + fechaLarga(b.fecha);
+  const items = b.bloques.flatMap(x=>x.items);
+  const hechos = items.filter(i=>i.hecho).length;
+  $('#count').textContent = items.length ? `${hechos} de ${items.length} ítems resueltos` : 'Todavía no hay ítems';
+  const strip = $('#strip'); strip.innerHTML='';
+  items.forEach(i=>{ const e=document.createElement('i'); if(i.hecho) e.className='on'; else if(i.prioridad) e.className='prio'; strip.appendChild(e); });
+  $('#cerrar').hidden = !S.puede_editar;
+
+  const cont = $('#bloques'); cont.innerHTML='';
+  let grupoActual = null;
+  b.bloques.forEach(bl=>{
+    if(bl.grupo !== grupoActual){ grupoActual = bl.grupo; const h=document.createElement('h2'); h.className='grupo'; h.textContent=bl.grupo; cont.appendChild(h); }
+    cont.appendChild(renderBloque(bl));
+  });
+  renderHist();
+}
+
+function renderBloque(bl){
+  const d = document.createElement('details'); d.className='bloque';
+  const pendientes = bl.items.filter(i=>!i.hecho).length;
+  const key = tipo+':'+bl.id;
+  // Abierto si tiene pendientes, salvo que Flor lo haya cerrado a mano; si el usuario lo abrio, queda abierto.
+  d.open = abiertos.has(key) || (pendientes>0 && !cerradosExplicitos.has(key));
+  d.addEventListener('toggle', ()=>{
+    if(d.open){ abiertos.add(key); cerradosExplicitos.delete(key); } else { abiertos.delete(key); cerradosExplicitos.add(key); }
+    sessionStorage.setItem('briefing-abiertos', JSON.stringify([...abiertos]));
+    sessionStorage.setItem('briefing-cerrados', JSON.stringify([...cerradosExplicitos]));
+  });
+  const s = document.createElement('summary');
+  s.innerHTML = '<span class="tit"></span><span class="n"></span>';
+  s.querySelector('.tit').textContent = bl.titulo;
+  const n = s.querySelector('.n');
+  n.textContent = bl.items.length ? (pendientes? `${pendientes} pendiente${pendientes>1?'s':''}` : 'Todo resuelto') : 'Vacío';
+  if(bl.items.length && !pendientes) n.classList.add('ok');
+  d.appendChild(s);
+
+  if(bl.hint){ const p=document.createElement('p'); p.className='hint'; p.textContent=bl.hint; d.appendChild(p); }
+  if(bl.items.length){
+    const ul=document.createElement('ul'); ul.className='items';
+    bl.items.forEach(it=>ul.appendChild(renderItem(it)));
+    d.appendChild(ul);
+  } else if(!S.puede_editar){
+    const p=document.createElement('p'); p.className='vacio'; p.textContent='Sin ítems por ahora.'; d.appendChild(p);
+  }
+  if(S.puede_editar){
+    const f=document.createElement('form'); f.className='nuevo';
+    f.innerHTML='<input type="text" maxlength="500" placeholder="Agregar ítem" aria-label="Agregar ítem a '+bl.titulo.replace(/"/g,'')+'"><button class="btn ghost" type="submit">Agregar</button>';
+    f.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const inp=f.querySelector('input'); const texto=inp.value.trim(); if(!texto) return;
+      const it = await api('/item','POST',{tipo, bloque:bl.id, texto});
+      bl.items.push(it); abiertos.add(key); render();
+    });
+    d.appendChild(f);
+  }
+  return d;
+}
+
+function renderItem(it){
+  const ro = !S.puede_editar;
+  const li=document.createElement('li'); li.className='item'+(it.hecho?' hecho':'')+(ro?' ro':'');
+  const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=it.hecho; cb.disabled=ro;
+  cb.setAttribute('aria-label','Marcar como resuelto');
+  cb.addEventListener('change', async ()=>{ it.hecho=cb.checked; render(); await api('/item/'+it.id,'PATCH',{hecho:it.hecho}); });
+  li.appendChild(cb);
+
+  const t=document.createElement('input'); t.type='text'; t.className='txt'; t.value=it.texto; t.readOnly=ro; t.maxLength=500;
+  t.setAttribute('aria-label','Texto del ítem');
+  t.addEventListener('change', async ()=>{ const v=t.value.trim(); if(!v){ t.value=it.texto; return; } it.texto=v; await api('/item/'+it.id,'PATCH',{texto:v}); });
+  li.appendChild(t);
+
+  const tools=document.createElement('div'); tools.className='tools';
+  if(!ro){
+    const p=document.createElement('button'); p.type='button'; p.className='ic'+(it.prioridad?' on':''); p.textContent='Urgente';
+    p.title='Marcar como primera prioridad del próximo día hábil'; p.setAttribute('aria-pressed', it.prioridad);
+    p.addEventListener('click', async ()=>{ it.prioridad=!it.prioridad; render(); await api('/item/'+it.id,'PATCH',{prioridad:it.prioridad}); });
+    const n=document.createElement('button'); n.type='button'; n.className='ic'; n.textContent=it.nota?'Nota':'+ Nota';
+    n.addEventListener('click', ()=>{ li.dataset.nota = li.dataset.nota? '' : '1'; render2(li, it); });
+    const x=document.createElement('button'); x.type='button'; x.className='ic'; x.textContent='Borrar'; x.setAttribute('aria-label','Borrar ítem');
+    x.addEventListener('click', async ()=>{
+      if(it.plantilla && !confirm('Este ítem vuelve a aparecer en cada briefing. ¿Borrarlo solo de este?')) return;
+      await api('/item/'+it.id,'DELETE');
+      S[tipo].bloques.forEach(b=>b.items=b.items.filter(i=>i.id!==it.id)); render(); toast('Ítem borrado');
+    });
+    tools.append(p,n,x);
+  }
+  li.appendChild(tools);
+
+  const sub=document.createElement('div'); sub.className='sub';
+  if(it.prioridad && ro){ const s=document.createElement('span'); s.className='prio-tag'; s.textContent='Urgente'; sub.appendChild(s); }
+  if(!ro){
+    const dl=document.createElement('input'); dl.type='date'; dl.value=it.deadline||''; dl.setAttribute('aria-label','Deadline');
+    dl.addEventListener('change', async ()=>{ it.deadline=dl.value; render(); await api('/item/'+it.id,'PATCH',{deadline:it.deadline}); });
+    const lab=document.createElement('span'); lab.textContent='Deadline'; sub.append(lab, dl);
+    if(vencido(it.deadline) && !it.hecho){ const c=document.createElement('span'); c.className='chip vencido'; c.textContent='Vencido'; sub.appendChild(c); }
+  } else if(it.deadline){
+    const c=document.createElement('span'); c.className='chip'+(vencido(it.deadline)&&!it.hecho?' vencido':'');
+    c.textContent='Deadline '+new Date(it.deadline+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'}); sub.appendChild(c);
+  }
+  if(sub.children.length) li.appendChild(sub);
+
+  if(ro && it.nota){ const p=document.createElement('div'); p.className='nota-ro'; p.textContent=it.nota; li.appendChild(p); }
+  if(!ro && (it.nota)){ li.appendChild(notaBox(it)); }
+  return li;
+}
+function notaBox(it){
+  const ta=document.createElement('textarea'); ta.className='nota'; ta.value=it.nota||''; ta.maxLength=2000; ta.placeholder='Nota';
+  ta.setAttribute('aria-label','Nota del ítem');
+  ta.addEventListener('change', async ()=>{ it.nota=ta.value; await api('/item/'+it.id,'PATCH',{nota:it.nota}); });
+  return ta;
+}
+function render2(li, it){
+  if(li.querySelector('.nota')) return;
+  const ta=notaBox(it); li.appendChild(ta); ta.focus();
+}
+
+function renderHist(){
+  const h=$('#hist'); h.innerHTML='';
+  if(!S.historial.length){ h.innerHTML='<p class="vacio" style="margin-left:0">Cuando cierres un briefing queda guardado acá con su fecha.</p>'; return; }
+  S.historial.forEach(r=>{
+    const todos=r.bloques.flatMap(b=>b.items); const ok=todos.filter(i=>i.hecho).length;
+    const d=document.createElement('details'); d.className='h-row';
+    const s=document.createElement('summary'); s.textContent=`${r.tipo==='lunes'?'Lunes':'Viernes'} ${fechaLarga(r.fecha)}: ${ok} de ${todos.length} resueltos`; d.appendChild(s);
+    r.bloques.filter(b=>b.items.length).forEach(b=>{
+      const h4=document.createElement('h4'); h4.textContent=b.titulo; d.appendChild(h4);
+      const ul=document.createElement('ul');
+      b.items.forEach(i=>{ const li=document.createElement('li'); li.textContent=(i.hecho?'Resuelto: ':'Pendiente: ')+i.texto+(i.nota?' (nota: '+i.nota+')':''); ul.appendChild(li); });
+      d.appendChild(ul);
+    });
+    h.appendChild(d);
+  });
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{ tipo=b.dataset.tipo; localStorage.setItem('briefing-tipo',tipo); render(); }));
+$('#cerrar').addEventListener('click', async ()=>{
+  const pend = S[tipo].bloques.flatMap(b=>b.items).filter(i=>!i.hecho && !i.plantilla).length;
+  if(!confirm(`Se archiva este briefing y arranca el próximo. Los ${pend} ítems sin resolver pasan al siguiente. ¿Cerrar?`)) return;
+  await api('/cerrar','POST',{tipo}); abiertos.clear(); cerradosExplicitos.clear(); sessionStorage.clear(); await cargar(); toast('Briefing cerrado y archivado');
+});
+cargar();
+</script>
+</body>
+</html>
